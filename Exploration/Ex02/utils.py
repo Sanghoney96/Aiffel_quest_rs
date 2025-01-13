@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.model_selection import KFold, cross_val_score
 
 
 def rmse(y, y_pred):
@@ -56,11 +57,26 @@ def grid_search_cv(model, train, y, param_grid, verbose=2, n_jobs=5):
     return results
 
 
+def get_cv_score(models, x, y):
+    kfold = KFold(n_splits=5).get_n_splits(x.values)
+    for m in models:
+        CV_score = np.mean(cross_val_score(m["model"], X=x.values, y=y, cv=kfold))
+        print(f"Model: {m['name']}, CV score:{CV_score:.4f}")
+
+
+def average_blending(models, x, y, sub_x):
+    for m in models:
+        m["model"].fit(x.values, y)
+
+    predictions = np.column_stack([m["model"].predict(sub_x.values) for m in models])
+    return np.mean(predictions, axis=1)
+
+
 def save_submission(model, train, y, test, model_name, rmsle=None):
     model.fit(train, y)
     prediction = model.predict(test)
     prediction = np.expm1(prediction)
-    data_dir = "/Users/masang/Desktop/aiffel/AIFFEL_quest_rs/Exploration/Ex02/data"
+    data_dir = "/Users/masang/Desktop/aiffel/AIFFEL_quest_rs/Exploration/Ex02"
     submission_path = os.path.join(data_dir, "sample_submission.csv")
     submission = pd.read_csv(submission_path)
     submission["price"] = prediction
