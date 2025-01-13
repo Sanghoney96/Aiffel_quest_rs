@@ -58,6 +58,7 @@ def grid_search_cv(model, train, y, param_grid, verbose=2, n_jobs=5):
 
 
 def get_cv_score(models, x, y):
+    """return r-squared score of each model."""
     kfold = KFold(n_splits=5).get_n_splits(x.values)
     for m in models:
         CV_score = np.mean(cross_val_score(m["model"], X=x.values, y=y, cv=kfold))
@@ -65,23 +66,9 @@ def get_cv_score(models, x, y):
 
 
 def average_blending(models, x, y, sub_x):
+    """return regression prediction by averaging models."""
     for m in models:
         m["model"].fit(x.values, y)
 
     predictions = np.column_stack([m["model"].predict(sub_x.values) for m in models])
     return np.mean(predictions, axis=1)
-
-
-def save_submission(model, train, y, test, model_name, rmsle=None):
-    model.fit(train, y)
-    prediction = model.predict(test)
-    prediction = np.expm1(prediction)
-    data_dir = "/Users/masang/Desktop/aiffel/AIFFEL_quest_rs/Exploration/Ex02"
-    submission_path = os.path.join(data_dir, "sample_submission.csv")
-    submission = pd.read_csv(submission_path)
-    submission["price"] = prediction
-    submission_csv_path = "{}/submission_{}_RMSLE_{}.csv".format(
-        data_dir, model_name, rmsle
-    )
-    submission.to_csv(submission_csv_path, index=False)
-    print("{} saved!".format(submission_csv_path))
