@@ -2,6 +2,8 @@ import konlpy
 from konlpy.tag import Mecab
 import numpy as np
 from collections import Counter
+import tensorflow as tf
+import IPython
 
 tokenizer = Mecab()
 stopwords = [
@@ -94,3 +96,8 @@ def get_decoded_sentences(encoded_sentences, index_to_word):
         get_decoded_sentence(encoded_sentence, index_to_word)
         for encoded_sentence in encoded_sentences
     ]
+
+
+class ClearTrainingOutput(tf.keras.callbacks.Callback):
+    def on_train_end(*args, **kwargs):
+        IPython.display.clear_output(wait=True)
