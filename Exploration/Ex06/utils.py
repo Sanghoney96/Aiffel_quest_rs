@@ -175,3 +175,36 @@ def preprocess_sentence(sentence, contractions, remove_stopwords=True):
         tokens = " ".join(word for word in sentence.split() if len(word) > 1)
 
     return tokens
+
+
+def below_threshold_len(max_len, nested_list):
+    cnt = 0
+    for s in nested_list:
+        if len(s.split()) <= max_len:
+            cnt = cnt + 1
+    print(
+        "전체 샘플 중 길이가 %s 이하인 샘플의 비율: %s"
+        % (max_len, (cnt / len(nested_list)))
+    )
+
+
+# 원문의 정수 시퀀스를 텍스트 시퀀스로 변환
+def seq2text(input_seq, src_index_to_word):
+    temp = ""
+    for i in input_seq:
+        if i != 0:
+            temp = temp + src_index_to_word[i] + " "
+    return temp
+
+
+# 요약문의 정수 시퀀스를 텍스트 시퀀스로 변환
+def seq2summary(input_seq, tar_word_to_index, tar_index_to_word):
+    temp = ""
+    for i in input_seq:
+        if (
+            (i != 0)
+            and i != tar_word_to_index["sostoken"]
+            and i != tar_word_to_index["eostoken"]
+        ):
+            temp = temp + tar_index_to_word[i] + " "
+    return temp
