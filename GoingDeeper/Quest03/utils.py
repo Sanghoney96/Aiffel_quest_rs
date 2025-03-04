@@ -36,6 +36,24 @@ def read_token(file_name):
                 break 
             tokenlist = okt.pos(line, stem=True, norm=True) 
             for word in tokenlist:
-                if word[1] in ["Noun"]:#, "Adjective", "Verb"]:
+                if word[1] in ["Noun"]:
                     result.append((word[0])) 
+    return ' '.join(result)
+
+
+from konlpy.tag import Mecab
+
+def read_token_mecab(file_name):
+    mecab = Mecab()
+    result = []
+    with open('/home/masang/Desktop/Quest03/synopsis/'+file_name, 'r') as fread: 
+        print(file_name, '파일을 읽고 있습니다.')
+        while True:
+            line = fread.readline()
+            if not line: 
+                break 
+            tokenlist = mecab.pos(line)  
+            for word, pos in tokenlist:
+                if pos in ["NNG", "NNP", "NNB", "NNBC"]:  # Nouns
+                    result.append(word)
     return ' '.join(result)
