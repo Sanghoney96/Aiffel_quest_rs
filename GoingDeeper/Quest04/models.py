@@ -24,13 +24,14 @@ class BahdanauAttention(tf.keras.layers.Layer):
     
 
 class Encoder(tf.keras.Model):
-    def __init__(self, vocab_size, embedding_dim, enc_units):
+    def __init__(self, vocab_size, embedding_dim, enc_units, num_layers=1):
         super(Encoder, self).__init__()
         
         self.enc_units = enc_units
         self.embedding = tf.keras.layers.Embedding(vocab_size, embedding_dim)
-        self.gru = tf.keras.layers.GRU(enc_units,
-                                       return_sequences=True)
+        self.gru = tf.keras.Sequential([tf.keras.layers.GRU(enc_units,
+                                                            return_sequences=True) 
+                                        for _ in range(num_layers)])
         
     def call(self, x):
         out = self.embedding(x)
@@ -40,24 +41,29 @@ class Encoder(tf.keras.Model):
     
 
 class Decoder(tf.keras.Model):
-    def __init__(self, vocab_size, embedding_dim, dec_units):
+    def __init__(self, vocab_size, embedding_dim, dec_units, num_layers=1):
         super(Decoder, self).__init__()
         self.dec_units = dec_units
         self.embedding = tf.keras.layers.Embedding(vocab_size, embedding_dim)
-        self.gru = tf.keras.layers.GRU(dec_units,
-                                       return_sequences=True,
-                                       return_state=True)
+        self.gru_layers = [tf.keras.layers.GRU(dec_units,
+                                               return_sequences=True, 
+                                               return_state=True) 
+                           for _ in range(num_layers)]
+        
         self.fc = tf.keras.layers.Dense(vocab_size)
 
         self.attention = BahdanauAttention(self.dec_units)
 
     def call(self, x, h_dec, enc_out):
-        context_vec, attn = self.attention(enc_out, h_dec)
-
         out = self.embedding(x)
-        out = tf.concat([tf.expand_dims(context_vec, 1), out], axis=-1)
         
-        out, h_dec = self.gru(out)
+        # 모든 GRU 층을 처리
+        for i, gru in enumerate(self.gru_layers):
+            if i == len(self.gru_layers) - 1:  # 마지막 GRU 층에만 어텐션 적용
+                context_vec, attn = self.attention(enc_out, h_dec)
+                out = tf.concat([tf.expand_dims(context_vec, 1), out], axis=-1)
+            out, h_dec = gru(out)
+        
         out = self.fc(out)
 
         return out, h_dec, attn

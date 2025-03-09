@@ -29,6 +29,7 @@ def preprocess_eng(sentence):
     
     sentence = sentence.strip()
     
+#     sentence = re.sub(r'\d+', 'num', sentence)  # 숫자를 <num> 토큰으로 대체
     sentence = '<start> ' + sentence + ' <end>'  # 문장 앞뒤에 start, end token 추가
     
     return sentence
@@ -49,6 +50,8 @@ def preprocess_kor(sentence):
     
     sentence = sentence.strip()
     
+#     sentence = re.sub(r'\d+', 'num', sentence)  # 숫자를 <num> 토큰으로 대체
+    
     return sentence
 
 
@@ -57,8 +60,6 @@ def tokenize_eng(corpus):
     tokenizer.fit_on_texts(corpus)
 
     tensor = tokenizer.texts_to_sequences(corpus)
-
-    tensor = tf.keras.preprocessing.sequence.pad_sequences(tensor, padding='post')
 
     return tensor, tokenizer
 
@@ -79,6 +80,5 @@ def tokenize_kor(corpus):
     tokenizer.fit_on_texts(tokenized_corpus)
 
     tensor = tokenizer.texts_to_sequences(tokenized_corpus)
-    tensor = tf.keras.preprocessing.sequence.pad_sequences(tensor, padding='post')
 
     return tensor, tokenizer
