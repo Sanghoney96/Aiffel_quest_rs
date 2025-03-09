@@ -32,10 +32,12 @@ class Encoder(tf.keras.Model):
         self.gru = tf.keras.Sequential([tf.keras.layers.GRU(enc_units,
                                                             return_sequences=True) 
                                         for _ in range(num_layers)])
+        self.dropout = tf.keras.layers.Dropout(0.3)
         
     def call(self, x):
         out = self.embedding(x)
         out = self.gru(out)
+        out = self.dropout(out)
         
         return out
     
@@ -49,9 +51,8 @@ class Decoder(tf.keras.Model):
                                                return_sequences=True, 
                                                return_state=True) 
                            for _ in range(num_layers)]
-        
+        self.dropout = tf.keras.layers.Dropout(0.3)
         self.fc = tf.keras.layers.Dense(vocab_size)
-
         self.attention = BahdanauAttention(self.dec_units)
 
     def call(self, x, h_dec, enc_out):
@@ -63,6 +64,7 @@ class Decoder(tf.keras.Model):
                 context_vec, attn = self.attention(enc_out, h_dec)
                 out = tf.concat([tf.expand_dims(context_vec, 1), out], axis=-1)
             out, h_dec = gru(out)
+            out = self.dropout(out)
         
         out = self.fc(out)
 
